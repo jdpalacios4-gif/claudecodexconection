@@ -1,6 +1,6 @@
 # Estado: `dias_habiles`
 
-Rama: `feat/prueba-flujo`. Ronda 1, listo para auditoría.
+Rama: `feat/prueba-flujo`. Ronda 2: bloqueante de `AUDIT.md` corregido, pendiente de re-auditoría.
 
 ## Resumen de cambios
 
@@ -8,30 +8,31 @@ Se implementó `dias_habiles(inicio, fin, feriados=None)` siguiendo `PLAN.md`:
 
 - Ambos extremos incluidos; `inicio > fin` lanza `ValueError`.
 - Solo se aceptan `datetime.date`; `datetime.datetime`, cadenas y otros tipos lanzan `TypeError`.
-- `feriados` puede ser `None` o cualquier iterable; se consume una vez y se deduplica con un `set`.
+- `feriados` puede ser `None` o cualquier iterable; se consume una vez y se deduplica.
 - El conteo es aritmético: cinco laborables por semana completa más una revisión de los días
   sobrantes (máximo seis). No se suma a ninguna fecha, así que no hay desbordamiento en `date.max`.
 
+## Respuesta a la auditoría (ronda 1)
+
+| Hallazgo | Tipo | Resolución |
+| --- | --- | --- |
+| Un feriado de una subclase de `date` sin hash lanza `TypeError` (`src/dias_habiles.py`) | Bloqueante | **Corregido.** Reproducido con una prueba nueva antes de tocar el código. Los feriados ahora se deduplican por ordinal (`toordinal()`), sin depender del hash de la instancia. |
+| Agregar un `datetime.datetime` como elemento de `feriados` a `test_tipos_invalidos` | Sugerencia | **Aplicada.** Nuevo subcaso "feriado datetime". |
+
 ## Archivos modificados
 
-- `src/dias_habiles.py` (nuevo)
-- `tests/test_dias_habiles.py` (nuevo)
-- `.gitignore` (nuevo, ignora `__pycache__/`)
+- `src/dias_habiles.py`
+- `tests/test_dias_habiles.py`
+- `.gitignore` (ignora `__pycache__/`)
 
 ## Pruebas
 
-`python -m unittest discover -s tests -v` → `Ran 11 tests in 0.001s — OK`
+`python -m unittest discover -s tests -v` → `Ran 12 tests in 0.001s — OK`
 
-Cubren los criterios de aceptación 1 a 7 y una comprobación cruzada del conteo aritmético contra un
-recorrido día por día (7 días de inicio × 30 largos de intervalo).
+Antes de la corrección, la prueba nueva `test_feriado_de_subclase_sin_hash` fallaba con el mismo
+`TypeError` que describe la auditoría; después de la corrección pasa.
 
 ## Dudas y riesgos para el Auditor
 
-1. Los feriados se validan todos, incluso los que quedan fuera del intervalo. Un elemento inválido
-   lejos del rango también lanza `TypeError`. ¿Es el comportamiento deseado?
-2. La validación de tipos ocurre antes que la de orden: `dias_habiles("x", fecha)` lanza `TypeError`
-   aunque el orden también fuera inválido.
-3. No hay `src/__init__.py`; la importación `from src.dias_habiles import ...` depende de ejecutar
-   las pruebas desde la raíz del repositorio.
-4. Una cadena pasada como `feriados` es iterable; falla con `TypeError` por sus elementos, con un
-   mensaje que habla de "cada feriado" y no del argumento completo.
+Las cuatro dudas de la ronda 1 quedaron respondidas en `AUDIT.md` sin cambios requeridos. Sin dudas
+nuevas.

@@ -15,7 +15,11 @@ def _validar_fecha(valor, nombre):
 
 
 def _normalizar_feriados(feriados):
-    """Consume el iterable una sola vez y devuelve un conjunto sin duplicados."""
+    """Consume el iterable una sola vez y devuelve los ordinales sin duplicados.
+
+    Se guardan ordinales y no las fechas para no depender de que cada instancia
+    tenga hash (una subclase de date puede no tenerlo).
+    """
     if feriados is None:
         return set()
     try:
@@ -25,11 +29,11 @@ def _normalizar_feriados(feriados):
             "feriados debe ser None o un iterable de datetime.date, "
             f"no {type(feriados).__name__}"
         ) from None
-    conjunto = set()
+    ordinales = set()
     for feriado in iterador:
         _validar_fecha(feriado, "cada feriado")
-        conjunto.add(feriado)
-    return conjunto
+        ordinales.add(feriado.toordinal())
+    return ordinales
 
 
 def dias_habiles(inicio, fin, feriados=None):
@@ -45,7 +49,7 @@ def dias_habiles(inicio, fin, feriados=None):
     _validar_fecha(fin, "fin")
     if inicio > fin:
         raise ValueError("inicio no puede ser posterior a fin")
-    conjunto_feriados = _normalizar_feriados(feriados)
+    ordinales_feriados = _normalizar_feriados(feriados)
 
     # Siete días consecutivos siempre contienen cinco laborables, así que solo
     # hace falta revisar uno por uno los días que sobran. No se suma a ninguna
@@ -58,7 +62,12 @@ def dias_habiles(inicio, fin, feriados=None):
         if (primer_dia + desplazamiento) % 7 < _SABADO:
             habiles += 1
 
-    for feriado in conjunto_feriados:
-        if inicio <= feriado <= fin and feriado.weekday() < _SABADO:
+    ordinal_inicio = inicio.toordinal()
+    ordinal_fin = fin.toordinal()
+    for ordinal in ordinales_feriados:
+        if (
+            ordinal_inicio <= ordinal <= ordinal_fin
+            and date.fromordinal(ordinal).weekday() < _SABADO
+        ):
             habiles -= 1
     return habiles

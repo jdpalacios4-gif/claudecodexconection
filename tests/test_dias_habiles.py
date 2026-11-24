@@ -57,6 +57,9 @@ class DiasHabilesTest(unittest.TestCase):
             ),
             "feriados no iterable": lambda: dias_habiles(lunes, viernes, feriados=42),
             "feriado None": lambda: dias_habiles(lunes, viernes, feriados=[None]),
+            "feriado datetime": lambda: dias_habiles(
+                lunes, viernes, feriados=[datetime(2026, 11, 24, 9, 0)]
+            ),
         }
         for nombre, llamada in casos.items():
             with self.subTest(nombre):
@@ -69,6 +72,16 @@ class DiasHabilesTest(unittest.TestCase):
 
     def test_date_max_sin_desbordamiento(self):
         self.assertEqual(dias_habiles(date.max, date.max), 1)
+
+    # AUDIT.md ronda 1: una subclase de date sin hash es un feriado válido
+    def test_feriado_de_subclase_sin_hash(self):
+        class FechaSinHash(date):
+            __hash__ = None
+
+        lunes = date(2026, 11, 23)
+        feriados = [FechaSinHash(2026, 11, 23), FechaSinHash(2026, 11, 23)]
+        self.assertEqual(dias_habiles(lunes, lunes, feriados), 0)
+        self.assertEqual(dias_habiles(lunes, date(2026, 11, 27), feriados), 4)
 
     # Comprobación cruzada del conteo aritmético contra un recorrido día por día
     def test_coincide_con_recorrido_dia_a_dia(self):
