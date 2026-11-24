@@ -4,6 +4,10 @@ Este repositorio se trabaja con el **Protocolo Ejecutor–Evaluador**. La fuente
 [`PROTOCOLO.md`](PROTOCOLO.md): léelo completo antes de actuar. Este archivo solo resume los roles y
 contiene el perfil de este proyecto.
 
+> **Plantilla.** En el repositorio `claudecodexconection` este archivo es la plantilla que se copia a
+> cada proyecto. Al copiarlo, sustituye cada `<…>` del perfil y borra esta nota. Mientras queden
+> marcadores sin rellenar, el perfil no está confirmado y no hay ciclo.
+
 ## Roles
 
 - **Usuario.** Única autoridad final: aprueba planes y enmiendas, desempata y decide la fusión.
@@ -18,29 +22,34 @@ el objetivo.
 
 ## Perfil del proyecto
 
-Estado del perfil: propuesto por el Ejecutor a partir del ensayo del 2026-11-24; **pendiente de
-confirmación del usuario**.
+Estado del perfil: `<propuesto por Codex el AAAA-MM-DD | confirmado por el usuario el AAAA-MM-DD>`
 
 | Aspecto | Valor |
 | --- | --- |
-| Propósito | Repositorio de prueba y plantilla del protocolo |
-| Stack | Python 3.14, solo biblioteca estándar |
-| Código / pruebas | `src/` / `tests/` |
-| Instalación | No requiere |
-| Pruebas (Ejecutor) | `python -m unittest discover -s tests -v` |
-| Pruebas (sandbox de Codex) | `python3.14 -B -m unittest discover -s tests -v` — el alias `python` no arranca dentro del sandbox; `-B` evita escribir bytecode |
-| Lint | No configurado |
-| Rama base | `main` |
-| Convención de ramas | `feat/...`, `fix/...`, `docs/...`; nunca directo en `main` |
-| Directorios que no se tocan | Ninguno |
-| Zonas críticas | Ninguna |
-| Usos soportados | Los que declare el plan de cada tarea. Para `dias_habiles`: instancias de `datetime.date` que respetan el contrato de la clase base |
+| Propósito | `<qué hace el proyecto, en una frase>` |
+| Stack y versiones | `<lenguajes, frameworks y versiones>` |
+| Código / pruebas | `<directorios>` |
+| Instalación | `<comando exacto, o "no requiere">` |
+| Pruebas (Ejecutor) | `<comando exacto>` |
+| Pruebas (sandbox de Codex) | `<comando verificado dentro del sandbox; puede diferir del anterior>` |
+| Lint / formato | `<comando exacto, o "no configurado">` |
+| Ejecución local | `<comando exacto, o "no aplica">` |
+| Rama base | `<main, master, develop…>` |
+| Convención de ramas | `<por ejemplo feat/..., fix/..., docs/...>` |
+| Directorios que no se tocan | `<lista, o "ninguno">` |
+| Zonas críticas | `<seguridad, datos, dinero, permisos, APIs públicas…, o "ninguna">` |
+| Usos soportados | `<qué se considera uso normal del proyecto>` |
+
+En monorepos, repite la tabla por componente.
 
 ### Invocación de Codex
 
-- Modelo: `gpt-6.2-astra` (el más capaz de la última generación disponible al 2026-11-24), razonamiento `high`.
-- Alternativa autorizada: ninguna sin aprobación del usuario.
-- Invocación probada en este equipo (Windows, desde PowerShell a través de `cmd`):
+- Modelo: `<el más capaz de la última generación disponible; comprobarlo al crear el perfil>`,
+  razonamiento `high`.
+- Alternativas autorizadas: `<lista, o "ninguna sin aprobación del usuario">`.
+- Invocación probada en el shell del proyecto: `<comando exacto>`
+
+Referencia probada en Windows, desde PowerShell a través de `cmd`, con `gpt-6.2-astra`:
 
 ```powershell
 cmd /c "codex exec -C <repo> -m gpt-6.2-astra -c model_reasoning_effort=high --sandbox read-only -o <salida> - < <prompt>"
