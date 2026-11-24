@@ -83,6 +83,21 @@ class DiasHabilesTest(unittest.TestCase):
         self.assertEqual(dias_habiles(lunes, lunes, feriados), 0)
         self.assertEqual(dias_habiles(lunes, date(2026, 11, 27), feriados), 4)
 
+    # AUDIT.md ronda 2: los métodos redefinidos en una subclase no alteran el conteo
+    def test_subclase_que_redefine_metodos_de_fecha(self):
+        class FechaAlterada(date):
+            def toordinal(self):
+                return super().toordinal() - 1
+
+            def weekday(self):
+                return 6
+
+        lunes = date(2026, 11, 23)
+        lunes_alterado = FechaAlterada(2026, 11, 23)
+        self.assertEqual(dias_habiles(lunes, lunes, [lunes_alterado]), 0)
+        self.assertEqual(dias_habiles(lunes_alterado, lunes_alterado, [lunes]), 0)
+        self.assertEqual(dias_habiles(lunes_alterado, lunes_alterado), 1)
+
     # Comprobación cruzada del conteo aritmético contra un recorrido día por día
     def test_coincide_con_recorrido_dia_a_dia(self):
         inicio_base = date(2026, 1, 1).toordinal()

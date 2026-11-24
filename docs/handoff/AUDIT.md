@@ -1,51 +1,46 @@
-# Auditoría de `dias_habiles`
+# Auditoría de `dias_habiles` · Ronda 2
 
-**Veredicto — Requiere cambios.** Los siete criterios de aceptación se cumplen en los casos especificados. Queda un bloqueante en el manejo de feriados que son instancias válidas de `datetime.date`.
+**Veredicto — Requiere cambios.** Se corrigió el bloqueante de la ronda 1. La corrección introdujo una regresión que puede dejar sin descontar feriados válidos cuando una subclase de `date` redefine `toordinal()`.
 
-Ejecuté `python3.14 -B -m unittest discover -s tests -v` desde la raíz del repositorio. Las 11 pruebas pasaron en Python 3.14.2. Usé `python3.14` porque el alias `python` falló al iniciarse, y `-B` evitó que se escribieran archivos de bytecode.
+## Estado de los hallazgos de la ronda 1
 
-## Hallazgos bloqueantes
+| Hallazgo | Estado | Verificación |
+| --- | --- | --- |
+| **Bloqueante.** Un feriado de una subclase de `date` sin hash provocaba `TypeError`. | Resuelto | Repetí la reproducción original y devolvió `0`. También pasó `test_feriado_de_subclase_sin_hash`, que comprueba que dos instancias de la misma fecha se descuentan una sola vez. `tests/test_dias_habiles.py:77`. |
+| **Sugerencia.** Probar un `datetime.datetime` como elemento de `feriados`. | Resuelta | Pasó el nuevo subcaso `feriado datetime`. Una llamada directa también confirmó que la validación del elemento lanza `TypeError`. `tests/test_dias_habiles.py:60`. |
 
-### Un feriado válido sin hash provoca `TypeError` en `src/dias_habiles.py:30`
+## Bloqueantes nuevos
 
-El plan acepta objetos `datetime.date` como feriados. `_validar_fecha` acepta una subclase de `date` sin hash, pero `conjunto.add(feriado)` falla al deduplicarla. Esto impone un requisito adicional sobre los feriados válidos. Deduplicar por el ordinal de la fecha evitaría depender del hash de la instancia.
+### Una redefinición de `toordinal()` puede cambiar qué feriados se descuentan
 
-Reproducción desde la raíz del repositorio:
+**Archivo y líneas:** `src/dias_habiles.py:35` y `src/dias_habiles.py:65–66`.
+
+La función acepta subclases de `date` tanto para los feriados como para los extremos. El último commit llama a `toordinal()` en cada instancia, por lo que una subclase que devuelve ordinales con base cero desplaza la fecha que se usa para filtrar los feriados. En ambos casos de la reproducción, el feriado corresponde al único día del intervalo. Verifiqué que `HEAD^` devuelve `0` en ambos casos y que `HEAD` devuelve `1`.
 
 ```python
 from datetime import date
+
 from src.dias_habiles import dias_habiles
 
-class FechaSinHash(date):
-    __hash__ = None
+
+class FechaOrdinalCero(date):
+    def toordinal(self):
+        return super().toordinal() - 1
+
 
 lunes = date(2026, 11, 23)
-dias_habiles(lunes, lunes, [FechaSinHash(2026, 11, 23)])
+lunes_subclase = FechaOrdinalCero(2026, 11, 23)
+
+print(dias_habiles(lunes, lunes, [lunes_subclase]))
+print(dias_habiles(lunes_subclase, lunes_subclase, [lunes]))
 ```
 
-El resultado esperado es `0` porque el lunes es feriado. En Python 3.14.2, la llamada lanza `TypeError` al insertar el feriado en el conjunto.
+La deduplicación por ordinal puede conservarse usando `date.toordinal(fecha)` tanto para los feriados como para los extremos. Una prueba de regresión con las dos llamadas cubriría el fallo.
 
-## Sugerencias
+## Sugerencias nuevas
 
-- `tests/test_dias_habiles.py:48` — Agregar un `datetime.datetime` como elemento de `feriados` a `test_tipos_invalidos`. El `None` ya cubre un elemento inválido, mientras que este caso protegería el rechazo explícito de una subclase de `date` en los feriados.
+Ninguna.
 
-## Criterios de aceptación
+## Pruebas ejecutadas
 
-| Criterio | Estado | Prueba que lo cubre |
-| --- | --- | --- |
-| 1. Devuelve el entero `5` de lunes a viernes y `2` de viernes a lunes con `feriados=[]`. | Cumplido | `test_semana_completa_sin_feriados`, `test_intervalo_que_cruza_fin_de_semana` |
-| 2. Para un solo día, devuelve `1` si es laborable y `0` si es feriado o sábado. | Cumplido | `test_un_solo_dia_laborable`, `test_un_solo_dia_feriado`, `test_un_solo_dia_en_fin_de_semana` |
-| 3. Devuelve `4` con el generador que incluye un duplicado, un sábado y una fecha fuera del intervalo. | Cumplido | `test_generador_con_duplicados_fin_de_semana_y_fuera_de_rango` |
-| 4. Lanza `ValueError` si el inicio es posterior al fin. | Cumplido | `test_inicio_posterior_a_fin` |
-| 5. Lanza `TypeError` para un inicio de tipo cadena, un fin de tipo `datetime`, `feriados=42` y `feriados=[None]`. | Cumplido | `test_tipos_invalidos`, con un subcaso por entrada |
-| 6. Devuelve `3` para el intervalo que cruza el 29 de febrero y `1` para `date.max` sin desbordarse. | Cumplido | `test_febrero_bisiesto`, `test_date_max_sin_desbordamiento` |
-| 7. La función se importa desde `src.dias_habiles` y `unittest discover` ejecuta la suite sin fallos. | Cumplido | Importación al cargar `tests/test_dias_habiles.py` y ejecución de las 11 pruebas |
-
-La comprobación cruzada `test_coincide_con_recorrido_dia_a_dia` compara el conteo con un recorrido de referencia para los siete días posibles de inicio y 30 duraciones. La implementación revisa como máximo seis días sobrantes y su coste crece con la cantidad de feriados, independientemente de la duración del intervalo.
-
-## Respuestas a las dudas del Ejecutor
-
-1. **Validación de todos los feriados.** Sí. El plan exige `TypeError` ante cualquier elemento inválido. El filtro por intervalo se aplica a los elementos que ya se validaron como fechas.
-2. **Validación de tipos antes del orden.** Es correcto. Primero se comprueba que ambos extremos sean fechas válidas. `ValueError` corresponde a dos fechas válidas en orden inverso.
-3. **Importación sin `src/__init__.py`.** `src` funciona como paquete de espacio de nombres cuando la raíz del repositorio está en `sys.path`. La ejecución desde la raíz cumple esa condición y verifiqué que descubre las 11 pruebas.
-4. **Cadena como `feriados`.** Para una cadena no vacía, `TypeError` y el mensaje sobre «cada feriado» identifican correctamente el carácter inválido. Verifiqué que `feriados=""` se acepta como iterable vacío, conforme a la regla del plan que admite cualquier iterable cuyos elementos sean fechas.
+Las 12 pruebas pasaron en Python 3.14.2 con `python3.14 -B -m unittest discover -s tests -v`. También pasaron 16 comparaciones con un conteo día a día cerca de `date.min` y `date.max`, con feriados duplicados en los extremos. Ejecuté las comprobaciones sin escribir archivos.
