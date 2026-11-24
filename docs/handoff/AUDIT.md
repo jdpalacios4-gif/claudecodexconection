@@ -1,46 +1,23 @@
-# Auditoría de `dias_habiles` · Ronda 2
+# Auditoría de `dias_habiles` · Ronda 3
 
-**Veredicto — Requiere cambios.** Se corrigió el bloqueante de la ronda 1. La corrección introdujo una regresión que puede dejar sin descontar feriados válidos cuando una subclase de `date` redefine `toordinal()`.
+**Veredicto — Aprobado.** El bloqueante de la ronda 2 quedó resuelto y se cumplen los siete criterios de aceptación del plan. No encontré bloqueantes nuevos.
 
-## Estado de los hallazgos de la ronda 1
+## Estado de los hallazgos de la ronda 2
 
 | Hallazgo | Estado | Verificación |
 | --- | --- | --- |
-| **Bloqueante.** Un feriado de una subclase de `date` sin hash provocaba `TypeError`. | Resuelto | Repetí la reproducción original y devolvió `0`. También pasó `test_feriado_de_subclase_sin_hash`, que comprueba que dos instancias de la misma fecha se descuentan una sola vez. `tests/test_dias_habiles.py:77`. |
-| **Sugerencia.** Probar un `datetime.datetime` como elemento de `feriados`. | Resuelta | Pasó el nuevo subcaso `feriado datetime`. Una llamada directa también confirmó que la validación del elemento lanza `TypeError`. `tests/test_dias_habiles.py:60`. |
+| **Bloqueante.** Una subclase de `date` que redefine `toordinal()` puede impedir que se descuente un feriado válido. | **Resuelto** | Repetí las dos llamadas de la ronda 2, usando la subclase primero como feriado y luego como ambos extremos. Las dos devolvieron `0`. La conversión usa `date.toordinal(valor)` para todos los argumentos de fecha en `src/dias_habiles.py:19`. Pasó la prueba de regresión en `tests/test_dias_habiles.py:87`, que también verifica una redefinición de `weekday()`. |
 
-## Bloqueantes nuevos
+La ronda 2 no registró sugerencias nuevas. Volví a verificar que los feriados sin hash se deduplican y que un `datetime.datetime` se rechaza como feriado.
 
-### Una redefinición de `toordinal()` puede cambiar qué feriados se descuentan
+## Hallazgos bloqueantes nuevos
 
-**Archivo y líneas:** `src/dias_habiles.py:35` y `src/dias_habiles.py:65–66`.
-
-La función acepta subclases de `date` tanto para los feriados como para los extremos. El último commit llama a `toordinal()` en cada instancia, por lo que una subclase que devuelve ordinales con base cero desplaza la fecha que se usa para filtrar los feriados. En ambos casos de la reproducción, el feriado corresponde al único día del intervalo. Verifiqué que `HEAD^` devuelve `0` en ambos casos y que `HEAD` devuelve `1`.
-
-```python
-from datetime import date
-
-from src.dias_habiles import dias_habiles
-
-
-class FechaOrdinalCero(date):
-    def toordinal(self):
-        return super().toordinal() - 1
-
-
-lunes = date(2026, 11, 23)
-lunes_subclase = FechaOrdinalCero(2026, 11, 23)
-
-print(dias_habiles(lunes, lunes, [lunes_subclase]))
-print(dias_habiles(lunes_subclase, lunes_subclase, [lunes]))
-```
-
-La deduplicación por ordinal puede conservarse usando `date.toordinal(fecha)` tanto para los feriados como para los extremos. Una prueba de regresión con las dos llamadas cubriría el fallo.
+Ninguno.
 
 ## Sugerencias nuevas
 
-Ninguna.
+- **`tests/test_dias_habiles.py:87`** — Ampliar la prueba de subclases para cubrir el orden y la resta de los extremos. El último commit también trasladó esas operaciones a los ordinales. Verifiqué que una subclase cuyos métodos `__gt__` y `__sub__` lanzan una excepción devuelve `4` de lunes a viernes con el lunes feriado, y que al invertir los extremos la función lanza `ValueError`. La suite actual no protege ese comportamiento frente a una regresión.
 
-## Pruebas ejecutadas
+## Verificación
 
-Las 12 pruebas pasaron en Python 3.14.2 con `python3.14 -B -m unittest discover -s tests -v`. También pasaron 16 comparaciones con un conteo día a día cerca de `date.min` y `date.max`, con feriados duplicados en los extremos. Ejecuté las comprobaciones sin escribir archivos.
+Revisé `git diff main...HEAD` y `git show HEAD` para el commit `015127b`. Las 13 pruebas pasaron en Python 3.14.2 con `python3.14 -B -m unittest discover -s tests -v`. También pasaron 502 comparaciones con un conteo día a día, con casos en `date.min` y `date.max` y feriados duplicados en los extremos. El conteo aritmético revisa como máximo seis días sobrantes, independientemente de la duración del intervalo. La auditoría se realizó en solo lectura.

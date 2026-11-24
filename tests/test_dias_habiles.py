@@ -98,6 +98,21 @@ class DiasHabilesTest(unittest.TestCase):
         self.assertEqual(dias_habiles(lunes_alterado, lunes_alterado, [lunes]), 0)
         self.assertEqual(dias_habiles(lunes_alterado, lunes_alterado), 1)
 
+    # AUDIT.md ronda 3 (sugerencia): el orden y el largo no usan operadores de la instancia
+    def test_subclase_con_comparacion_y_resta_rotas(self):
+        class FechaSinOperadores(date):
+            def __gt__(self, otra):
+                raise AssertionError("no debe compararse la instancia")
+
+            def __sub__(self, otra):
+                raise AssertionError("no debe restarse la instancia")
+
+        lunes = FechaSinOperadores(2026, 11, 23)
+        viernes = FechaSinOperadores(2026, 11, 27)
+        self.assertEqual(dias_habiles(lunes, viernes, [date(2026, 11, 23)]), 4)
+        with self.assertRaises(ValueError):
+            dias_habiles(viernes, lunes)
+
     # Comprobación cruzada del conteo aritmético contra un recorrido día por día
     def test_coincide_con_recorrido_dia_a_dia(self):
         inicio_base = date(2026, 1, 1).toordinal()

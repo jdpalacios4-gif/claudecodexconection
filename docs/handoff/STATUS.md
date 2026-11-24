@@ -1,7 +1,7 @@
 # Estado: `dias_habiles`
 
-Rama: `feat/prueba-flujo`. Bloqueante de la ronda 2 corregido. Se alcanzó el máximo de dos rondas
-de auditoría (`AGENTS.md`), así que el cierre queda a decisión de la persona responsable.
+Rama: `feat/prueba-flujo`. **Aprobado por el Auditor en la ronda 3, sin bloqueantes.** La tercera
+ronda excede el máximo de dos de `AGENTS.md` y se corrió por decisión expresa del usuario.
 
 ## Resumen de cambios
 
@@ -20,7 +20,8 @@ Se implementó `dias_habiles(inicio, fin, feriados=None)` siguiendo `PLAN.md`:
 | --- | --- | --- | --- |
 | 1 | Un feriado de una subclase de `date` sin hash lanza `TypeError` | Bloqueante | **Corregido** y verificado como resuelto por el Auditor en la ronda 2. |
 | 1 | Probar un `datetime.datetime` como elemento de `feriados` | Sugerencia | **Aplicada.** |
-| 2 | Una subclase que redefine `toordinal()` cambia qué feriados se descuentan (regresión de la corrección anterior) | Bloqueante | **Corregido.** Reproducido con una prueba nueva (`1 != 0`) antes de tocar el código. Se usa `date.toordinal(valor)` como propuso el Auditor. |
+| 2 | Una subclase que redefine `toordinal()` cambia qué feriados se descuentan (regresión de la corrección anterior) | Bloqueante | **Corregido.** Reproducido con una prueba nueva (`1 != 0`) antes de tocar el código. Se usa `date.toordinal(valor)` como propuso el Auditor. Verificado como resuelto en la ronda 3. |
+| 3 | Ampliar la prueba de subclases para cubrir el orden y la resta de los extremos | Sugerencia | **Aplicada** (`test_subclase_con_comparacion_y_resta_rotas`). No auditada; es solo una prueba nueva. |
 
 Decisión del Ejecutor más allá de lo pedido: el día de la semana también se calcula desde el ordinal
 (`_dia_semana`) en vez de llamar a `weekday()` de la instancia. Es la misma clase de problema que el
@@ -39,8 +40,8 @@ clasificar como Sugerencia.
 
 ## Pruebas
 
-`python -m unittest discover -s tests -v` → `Ran 13 tests in 0.001s — OK`
+`python -m unittest discover -s tests -v` → `Ran 14 tests — OK`
 
 ## Dudas y riesgos para el Auditor
 
-Sin dudas nuevas. La corrección de la ronda 2 no ha sido auditada.
+Sin dudas nuevas.
