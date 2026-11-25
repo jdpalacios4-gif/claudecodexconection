@@ -6,9 +6,11 @@ difieren, manda el protocolo.
 ## Antes de empezar una tarea
 
 1. Comprueba que el perfil de `AGENTS.md` está confirmado por el usuario. Sin perfil confirmado no hay ciclo.
-2. Propón la categoría (Trivial, Estándar o Crítica) con una frase que la justifique. Tocar una zona
+2. Lee `docs/CONTEXTO.md`. Si no existe, créalo desde la plantilla con lo que el usuario te haya
+   dicho y pídele que lo confirme.
+3. Propón la categoría (Trivial, Estándar o Crítica) con una frase que la justifique. Tocar una zona
    crítica prevalece sobre cualquier exención.
-3. Crea `docs/handoff/<AAAA-MM-DD-slug>/` y escribe `SOLICITUD.md` con el objetivo en palabras del usuario.
+4. Crea `docs/handoff/<AAAA-MM-DD-slug>/` y escribe `SOLICITUD.md` con el objetivo en palabras del usuario.
 
 ## Ciclo (tareas Estándar y Críticas)
 
@@ -24,6 +26,17 @@ difieren, manda el protocolo.
    correcciones, luego `STATUS.md` en un commit de handoff.
 7. **Cierre.** Escribe `CIERRE.md` con el SHA auditado, la revisión entregada y cualquier cambio
    entre ambas. La fusión la decide el usuario.
+
+## Contexto del proyecto (`docs/CONTEXTO.md`)
+
+- Guarda lo que aplica a todas las tareas: objetivo, alcance, reglas permanentes del usuario,
+  decisiones que trascienden una tarea, estado actual y glosario.
+- Cuando el usuario tome una decisión que aplique más allá de la tarea en curso, propón el texto,
+  espera su confirmación y regístralo con fecha y origen. Nunca registres como decisión del usuario
+  algo que no dijo.
+- Al cerrar una tarea, actualiza "Estado actual" y la fecha del encabezado.
+- Escríbelo en Markdown estándar con enlaces relativos, para que se lea igual en GitHub y en
+  Obsidian. Nada de secretos ni datos sensibles.
 
 ## Qué lleva `STATUS.md`
 

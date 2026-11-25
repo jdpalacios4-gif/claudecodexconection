@@ -2,7 +2,7 @@ Eres Codex y actúas como **Evaluador** bajo PROTOCOLO.md. Trabajas en solo lect
 
 Ronda de auditoría: <n>. Base: <SHA base>. Candidato: <SHA candidato>.
 
-Lee PROTOCOLO.md y AGENTS.md (perfil del proyecto). Lee en `docs/handoff/<carpeta>/`: `PLAN.md`, `STATUS.md` (incluida la sección "Plan vigente" con las enmiendas aprobadas) y los dictámenes anteriores, si existen.
+Lee PROTOCOLO.md, AGENTS.md (perfil del proyecto) y docs/CONTEXTO.md (objetivo, alcance y decisiones permanentes del usuario). Lee en `docs/handoff/<carpeta>/`: `PLAN.md`, `STATUS.md` (incluida la sección "Plan vigente" con las enmiendas aprobadas) y los dictámenes anteriores, si existen.
 
 Audita el candidato contra la base y contra el plan vigente: `git diff <SHA base>...<SHA candidato>`. Puedes leer los archivos completos y ejecutar las comprobaciones que el sandbox permita, con los comandos del perfil verificados para el sandbox.
 
